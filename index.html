@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <div class="d-grid gap-2 p-3">
+          <button type="button" class="btn btn-primary" @click="addMessage()">
+            Send Message
+          </button>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Id</th>
+                <th scope="col">Data</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(message, index) in reverseMessages">
+                <th scope="row">{{ messages.length - index }}</th>
+                <td>{{ message.id }}</td>
+                <td>{{ message.output || "Loading" }}</td>
+                <td>{{ message.runtimeStatus }}</td>
+                <td style="display: none">{{ message }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <script>
+    new Vue({
+      el: "#app",
+      data: {
+        messages: [],
+      },
+      computed: {
+        reverseMessages() {
+          return [...this.messages].reverse();
+        },
+      },
+      methods: {
+        async addMessage() {
+          const response = await axios.get(
+            "http://localhost:7071/api/orchestrators/HelloOrchestrator"
+          );
+          const messageIndex = this.pushMessage(response.data);
+          this.prepareFetch(messageIndex);
+        },
+        pushMessage(message) {
+          this.messages.push(message);
+          return this.messages.indexOf(message);
+        },
+        async prepareFetch(messageIndex, timeToFetch = 250) {
+          let messageData = await axios.get(
+            this.messages[messageIndex].statusQueryGetUri
+          );
+
+          this.$set(this.messages, messageIndex, {
+            ...this.messages[messageIndex],
+            ...messageData.data,
+          });
+
+          if (messageData.data.runtimeStatus === "Completed") {
+            return;
+          }
+
+          await (timeToFetch
+            ? new Promise((resolve) => setTimeout(() => resolve(), timeToFetch))
+            : Promise.resolve());
+
+          this.prepareFetch(messageIndex, timeToFetch);
+        },
+      },
+    });
+  </script>
+</html>
