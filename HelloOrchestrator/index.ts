@@ -17,12 +17,10 @@ const orchestrator = df.orchestrator(function* (context) {
     console.log("Before, ", outputs);
     
     // Replace "Hello" with the name of your Durable Activity Function.
+    yield context.df.callActivity("Sleep")
     outputs.push(yield context.df.callActivity("Hello", "Tokyo"));
-    console.log("Ran 1 output, ", outputs);
     outputs.push(yield context.df.callActivity("Hello", "Seattle"));
-    console.log("Ran 2 output, ", outputs);
     outputs.push(yield context.df.callActivity("Hello", "London"));
-    console.log("Ran 3 output, ", outputs);
 
     // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
     return outputs;

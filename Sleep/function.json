@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "name": "time",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ],
+  "scriptFile": "../dist/Sleep/index.js"
+}
