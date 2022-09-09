@@ -12,11 +12,13 @@
       crossorigin="anonymous"
     />
   </head>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
   <body>
     <div id="app">
       <div class="container">
         <div class="d-grid gap-2 p-3">
-          <button type="button" class="btn btn-primary" @click="addMessage()">
+          <button type="button" class="btn btn-primary" @click="addMessage()" :disabled="loading">
             Send Message
           </button>
           <table class="table">
@@ -29,10 +31,18 @@
               </tr>
             </thead>
             <tbody>
+              <tr v-if="loading">
+                <th colspan="5">Creating new message...</th>
+              </tr>
               <tr v-for="(message, index) in reverseMessages">
                 <th scope="row">{{ messages.length - index }}</th>
                 <td>{{ message.id }}</td>
-                <td>{{ message.output || "Loading" }}</td>
+                <td v-if="!!message.output">
+                  <div v-for="helloMessage of message.output">
+                    {{helloMessage}}
+                  </div>
+                </td>
+                <td v-if="!message.output">Loading...</td>
                 <td>{{ message.runtimeStatus }}</td>
                 <td style="display: none">{{ message }}</td>
               </tr>
@@ -42,14 +52,13 @@
       </div>
     </div>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 
   <script>
     new Vue({
       el: "#app",
       data: {
         messages: [],
+        loading: false,
       },
       computed: {
         reverseMessages() {
@@ -58,11 +67,16 @@
       },
       methods: {
         async addMessage() {
+          if (this.loading) {
+            return;
+          }
+          this.loading = true;
           const response = await axios.get(
             "http://localhost:7071/api/orchestrators/HelloOrchestrator"
           );
           const messageIndex = this.pushMessage(response.data);
           this.prepareFetch(messageIndex);
+          this.loading = false;
         },
         pushMessage(message) {
           this.messages.push(message);
