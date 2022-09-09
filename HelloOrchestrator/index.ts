@@ -10,6 +10,7 @@
  */
 
 import * as df from "durable-functions"
+import { faker } from "@faker-js/faker"
 
 const orchestrator = df.orchestrator(function* (context) {
     const outputs = [];
@@ -18,9 +19,8 @@ const orchestrator = df.orchestrator(function* (context) {
     
     // Replace "Hello" with the name of your Durable Activity Function.
     yield context.df.callActivity("Sleep")
-    outputs.push(yield context.df.callActivity("Hello", "Tokyo"));
-    outputs.push(yield context.df.callActivity("Hello", "Seattle"));
-    outputs.push(yield context.df.callActivity("Hello", "London"));
+    outputs.push(yield context.df.callActivity("Hello", faker.address.city()));
+    outputs.push(yield context.df.callActivity("Hello", faker.address.city()));
 
     // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
     return outputs;
